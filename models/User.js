@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     picture: { type: String, default: '' }
   },
 
-  publicKeys: [{
+  keys: [{
     nick: String,
     pubkey: String
   }]

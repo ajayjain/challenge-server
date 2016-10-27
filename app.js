@@ -18,7 +18,11 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+const uploadStorage = multer.memoryStorage();
+const upload = multer({ 
+    storage: uploadStorage
+});
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -83,7 +87,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path === '/api/upload' || req.path === '/encrypt') {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -132,6 +136,7 @@ app.post('/account/delete', passportConfig.isAuthenticated, userController.postD
 app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
 
 app.get('/encrypt', passportConfig.isAuthenticated, encryptController.getEncryptionPage);
+app.post('/encrypt', passportConfig.isAuthenticated, upload.single('myFile'), encryptController.postFile)
 
 /**
  * API examples routes.

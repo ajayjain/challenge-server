@@ -5,13 +5,19 @@ block content
   .page-header
     h3 Key pairs
 
+  //
+    ul    
+      each key in user.keys
+          li= key.nick
+
   form.form-horizontal(action='/account/generateKey', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group
       label.col-sm-3.control-label(for='nick') Nickname
       .col-sm-7
         input.form-control(type='text', name='nick', id='nick')
-    
+
+
     .form-group
       .col-sm-offset-3.col-sm-4
         button.btn.btn.btn-primary(type='submit')

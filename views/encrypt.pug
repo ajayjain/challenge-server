@@ -1,0 +1,25 @@
+extends layout
+
+block content
+
+  .page-header
+    h2
+      i.fa.fa-upload
+      | Encrypt a file
+
+
+  .row
+    .col-sm-6
+      form(role='form', enctype='multipart/form-data', method='POST')
+        .form-group
+          label.control-label Key
+          br
+          select(name='keynick')
+            option(value='') Select a key:
+            each key in user.keys
+              option(value=key.nick)= key.nick
+
+        .form-group
+          label.control-label File Input
+          input(type='file', name='myFile')
+        button.btn.btn-primary(type='submit') Submit

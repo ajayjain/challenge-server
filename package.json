@@ -10,6 +10,7 @@
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
+    "ursa": "*",
     "async": "^2.0.1",
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.15.2",

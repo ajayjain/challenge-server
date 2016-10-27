@@ -1,5 +1,6 @@
 const async = require('async');
 const crypto = require('crypto');
+var ursa = require('ursa');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
@@ -131,36 +132,36 @@ exports.generateKey = (req, res, next) => {
   if (typeof req.body.nick !== 'string' || !req.body.nick.length)
     var nick = 'key_' + new Date().toLocaleString().replace(/,? /g, '_')
 
-  const dh = crypto.createDiffieHellman(1024);
-  dh.generateKeys('base64');
-  const pubkey  = dh.getPublicKey('base64');
-  const privkey = dh.getPrivateKey('base64');
+  var keys = ursa.generatePrivateKey();
+  console.log('keys:', keys);
 
-  console.log(pubkey);
-  console.log(privkey);
+  // reconstitute the private key from a base64 encoding
+  var privPem = keys.toPrivatePem('base64');
+
+  // make a public key, to be used for encryption
+  var pubPem = keys.toPublicPem('base64');
 
   User.findById(req.user.id, (err, user) => {
     if (err) { return next(err); }
     
     // Ensure that the user hasn't already created a key with the same nickname
-    for (var existingKey of user.publicKeys)
+    for (var existingKey of user.keys)
       if (existingKey.nick === nick) {
         req.flash('errors', { msg: 'A public key with the nickname you entered is already associated with your account.' });
         return res.redirect('/account');
       }
 
-    user.publicKeys.push({
+    user.keys.push({
       nick: nick,
-      pubkey: pubkey
+      pubkey: pubPem
     });
 
     user.save((err) => {
       if (err)
         return next(err);
-      // req.flash('success', { msg: 'New public key generated.' });
 
       res.set({"Content-Disposition":"attachment; filename=\"" + nick + ".pem\""});
-      res.send(privkey);
+      res.send(privPem);
     });
   });
 };
