@@ -23,7 +23,12 @@ const userSchema = new mongoose.Schema({
     location: { type: String, default: '' },
     website: { type: String, default: '' },
     picture: { type: String, default: '' }
-  }
+  },
+
+  publicKeys: [{
+    nick: String,
+    pubkey: String
+  }]
 }, { timestamps: true });
 
 /**

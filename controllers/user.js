@@ -118,6 +118,54 @@ exports.getAccount = (req, res) => {
   });
 };
 
+
+/**
+ * POST /account/generateKey
+ * Public/private key generation.
+ * Saves public key to Mongo and downloads private key.
+ */
+exports.generateKey = (req, res, next) => {
+  var nick = req.body.nick || ''
+  var nick = nick.replace(/[^0-9a-zA-Z/:_]/g, '');
+  
+  if (typeof req.body.nick !== 'string' || !req.body.nick.length)
+    var nick = 'key_' + new Date().toLocaleString().replace(/,? /g, '_')
+
+  const dh = crypto.createDiffieHellman(1024);
+  dh.generateKeys('base64');
+  const pubkey  = dh.getPublicKey('base64');
+  const privkey = dh.getPrivateKey('base64');
+
+  console.log(pubkey);
+  console.log(privkey);
+
+  User.findById(req.user.id, (err, user) => {
+    if (err) { return next(err); }
+    
+    // Ensure that the user hasn't already created a key with the same nickname
+    for (var existingKey of user.publicKeys)
+      if (existingKey.nick === nick) {
+        req.flash('errors', { msg: 'A public key with the nickname you entered is already associated with your account.' });
+        return res.redirect('/account');
+      }
+
+    user.publicKeys.push({
+      nick: nick,
+      pubkey: pubkey
+    });
+
+    user.save((err) => {
+      if (err)
+        return next(err);
+      // req.flash('success', { msg: 'New public key generated.' });
+
+      res.set({"Content-Disposition":"attachment; filename=\"" + nick + ".pem\""});
+      res.send(privkey);
+    });
+  });
+};
+
+
 /**
  * POST /account/profile
  * Update profile information.
